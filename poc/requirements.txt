@@ -1,3 +1,4 @@
+requests
 splunk-sdk
 python-nmap
 colorama

@@ -2,66 +2,68 @@
 
 # Obtain Splunk Version and Information from Web Interface
 
-#%%%%%%%%%%% Libraries %%%%%%%%%%%#
+# %%%%%%%%%%% Libraries %%%%%%%%%%%#
 
-import sys
-import requests
 import json
+import logging
 import re
+import requests
+import sys
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-#%%%%%%%%%%%% Constants %%%%%%%%%%%%%#
+# %%%%%%%%%%%% Constants %%%%%%%%%%%%%#
 
-separator = "[*] ============================================================================================================== [*]"
+SEPARATOR = "[*] {0} [*]".format('=' * 110)
 
-#%%%%%%%%%%% Functions %%%%%%%%%%%#
+# %%%%%%%%%%% Functions %%%%%%%%%%%#
 
-def obtainsplunkinfo(splunkServer):
+def obtain_splunk_info(splunkServer):
 
-    splunkPort = input("[!] Enter Splunk Web Interface Port Number (Default Value 8000): ")
-    prefix="http://"
-    ssl=0
+	splunkPort = input("[!] Enter Splunk Web Interface Port Number (Default Value 8000): ")
+	prefix = "http://"
+	ssl = 0
 
-    if (splunkPort == "8443"):
-        ssl=1
-        prefix="https://"
-        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+	if splunkPort == "8443":
 
-    url = prefix+splunkServer+":"+splunkPort
+		ssl = 1
+		prefix = "https://"
+		requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-    try:
-        if (ssl):
-            response = requests.get(url, verify=False)
-        else:
-            response = requests.get(url)
+	url = prefix + splunkServer + ":" + splunkPort
 
-        data = response.text
-        jsondata = re.findall(r'"content".*?:(.*?)}].*?"generator"', data)
-        services_info = json.loads(jsondata[0])
-        services_session = json.loads(jsondata[1])
-        config_web = json.loads(jsondata[2])
+	try:
+		if ssl:
+			response = requests.get(url, verify = False)
+		else:
+			response = requests.get(url)
 
-        print(separator)
-        print("[!] Splunk Server Information")
-        print(separator)
-        for x in services_info:
-            print("[*] " + str(x) + ": " + str(services_info[x]))
-        print(separator)
-        print("[!] Splunk Session Information")
-        print(separator)
-        for x in services_session:
-            print("[*] " + str(x) + ": " + str(services_session[x]))
-        print(separator)
-        print("[!] Splunk Config Web")
-        print(separator)
-        for x in config_web:
-            print("[*] " + str(x) + ": " + str(config_web[x]))
-        print(separator)
+		data = response.text
+		jsondata = re.findall(r'"content".*?:(.*?)}].*?"generator"', data)
+		services_info = json.loads(jsondata[0])
+		services_session = json.loads(jsondata[1])
+		config_web = json.loads(jsondata[2])
 
-    except Exception as e:
-        print(e)
-        pass
+		print(SEPARATOR)
+		print("[!] Splunk Server Information")
+		print(SEPARATOR)
 
-#%%%%%%%%%% The End %%%%%%%%%%#
+		for x in services_info:
+			print("[*] " + str(x) + ": " + str(services_info[x]))
+		print(SEPARATOR)
+		print("[!] Splunk Session Information")
+		print(SEPARATOR)
 
+		for x in services_session:
+			print("[*] " + str(x) + ": " + str(services_session[x]))
+		print(SEPARATOR)
+		print("[!] Splunk Config Web")
+		print(SEPARATOR)
 
+		for x in config_web:
+			print("[*] " + str(x) + ": " + str(config_web[x]))
+		print(SEPARATOR)
+
+	except Exception as e:
+		logging.error(e, exc_info = True)
+
+# %%%%%%%%%% The End %%%%%%%%%%#

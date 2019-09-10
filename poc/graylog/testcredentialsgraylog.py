@@ -4,47 +4,48 @@
 
 #%%%%%%%%%%% Libraries %%%%%%%%%%%#
 
-import requests
 import colorama
-colorama.init()
-from colorama import Fore, Style
-import paramiko
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import json
+import logging
+import paramiko
+import requests
+import urllib3
+from colorama import Fore, Style
+
+colorama.init()
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 #%%%%%%%%%%% Constants %%%%%%%%%%%#
 
-separator = "[*] ============================================================================================================== [*]"
+SEPARATOR = "[*] {0} [*]".format('=' * 110)
 
 #%%%%%%%%%% Functions %%%%%%%%%#
 
-def testwebcredentials(graylogip):
+def test_web_credentials(graylogip):
 
     url = "http://"+graylogip+":9000/api/system/sessions"
-    params = {'username':'admin','password':'admin','host':graylogip} #default web interface credentials
+    params = {'username':'admin','password':'admin','host':graylogip} #default web interface creds
     headers = {'X-Requested-By': 'XMLHttpRequest'}
 
     try:
         response = requests.post(url, json=params, headers=headers, verify=False)
 
         if response.status_code == 200:
-            print(separator)
+            print(SEPARATOR)
             print("[!] Graylog Web Interface Default Credentials Found!")
-            print(separator)
+            print(SEPARATOR)
             print("[!] Username: "+Fore.RED+Style.BRIGHT+"admin")
             print(Style.RESET_ALL + "[!] Password: "+Fore.RED+Style.BRIGHT+"admin")
-            print(Style.RESET_ALL + separator)
+            print(Style.RESET_ALL + SEPARATOR)
         else:
-            print(separator)
+            print(SEPARATOR)
             print("[!] Graylog Web Interface Default Credentials Not Found, Try Bruteforce Module")
-            print(separator)
+            print(SEPARATOR)
 
     except Exception as e:
-        print(e)
-        pass
+        logging.error(e, exc_info=True)
 
-def testsshcredentials(graylogip):
+def test_ssh_credentials(graylogip):
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -52,15 +53,15 @@ def testsshcredentials(graylogip):
     try:
         ssh.connect(graylogip, username='ubuntu', password='ubuntu')
         print("[!] Graylog SSH Default Credentials Found!")
-        print(separator)
+        print(SEPARATOR)
         print("[!] Username: " + Fore.RED + Style.BRIGHT + "ubuntu")
         print(Style.RESET_ALL + "[!] Password: " + Fore.RED + Style.BRIGHT + "ubuntu")
-        print(Style.RESET_ALL + separator)
+        print(Style.RESET_ALL + SEPARATOR)
 
     except paramiko.AuthenticationException:
-        print(separator)
+        print(SEPARATOR)
         print("[!] Graylog SSH Default Credentials Not Found")
-        print(separator)
+        print(SEPARATOR)
         pass
 
 #%%%%%%%%%% The End %%%%%%%%%%#

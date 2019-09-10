@@ -2,52 +2,52 @@
 
 # Obtain Splunk System Information
 
-#%%%%%%%%%%% Libraries %%%%%%%%%%%#
+# %%%%%%%%%%% Libraries %%%%%%%%%%%#
 
-import sys
 import getpass
-sys.path.append('../')
+import logging
 import splunklib.client as client
+import sys
 
-#%%%%%%%%%%%% Constants %%%%%%%%%%%%%#
+sys.path.append('../')
 
-separator = "[*] ============================================================================================================== [*]"
+# %%%%%%%%%%%% Constants %%%%%%%%%%%%%#
 
-#%%%%%%%%%%% Functions %%%%%%%%%%%#
+SEPARATOR = "[*] {0} [*]".format('=' * 110)
 
-def obtainsysteminfo(splunkServer):
+# %%%%%%%%%%% Functions %%%%%%%%%%%#
 
-    print(separator)
-    splunkAdmin = input("[!] Enter Splunk Admin (Default admin): ")
-    splunkPassword = getpass.getpass("[!] Enter Splunk Password: ")
+def obtain_system_info(splunkServer):
 
-    splunkService = client.connect(host=splunkServer, port=8089, username=splunkAdmin, password=splunkPassword)
-    content = splunkService.info
+	print(SEPARATOR)
+	splunkAdmin = input("[!] Enter Splunk Admin (Default admin): ")
+	splunkPassword = getpass.getpass("[!] Enter Splunk Password: ")
 
-    print(separator)
-    print("[!] Splunk Info:")
-    print(separator)
+	splunkService = client.connect(host = splunkServer, port = 8089, username = splunkAdmin,
+									password = splunkPassword)
+	content = splunkService.info
 
-    for key in sorted(content.keys()):
-        value = content[key]
-        if isinstance(value, list):
-            print("[*] %s:" % key)
-            for item in value: print("[!]    %s" % item)
-        else:
-            print("[*] %s: %s" % (key, value))
+	print(SEPARATOR)
+	print("[!] Splunk Info:")
+	print(SEPARATOR)
 
-    print(separator)
-    print("[!] Splunk Settings:")
-    print(separator)
+	for key in sorted(content.keys()):
+		value = content[key]
+		if isinstance(value, list):
+			print("[*] %s:" % key)
+			for item in value: print("[!]    %s" % item)
+		else:
+			print("[*] %s: %s" % (key, value))
 
-    content = splunkService.settings.content
+	print(SEPARATOR)
+	print("[!] Splunk Settings:")
+	print(SEPARATOR)
 
-    for key in sorted(content.keys()):
-        value = content[key]
-        print("[*] %s: %s" % (key, value))
-    print(separator)
+	content = splunkService.settings.content
 
-#%%%%%%%%%% The End %%%%%%%%%%#
+	for key in sorted(content.keys()):
+		value = content[key]
+		print("[*] %s: %s" % (key, value))
+	print(SEPARATOR)
 
-
-
+# %%%%%%%%%% The End %%%%%%%%%%#

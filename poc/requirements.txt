@@ -1,7 +1,0 @@
-requests
-splunk-sdk
-python-nmap
-colorama
-pandas
-paramiko
-pymongo

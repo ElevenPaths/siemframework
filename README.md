@@ -9,14 +9,23 @@ Usage: python3 ./siemsframework.py
 SIEMs are defensive tools increasingly used in the field of cybersecurity, especially by major companies and companies intended to monitor highly critical systems and networks. However, from the point of view of an attacker, those permissions granted to SIEMs on systems and accounts from corporate networks are high. Moreover, administrative access to SIEMs may be used to obtain code execution on the server where such SIEM is installed, and sometimes also on client machines, considering that a SIEM collects events such as Active Directory servers, AWS servers, Data Bases and network devices (for example, Firewalls and Routers).
 
 During our investigation, we detected a great amount of attack vectors that might be used on the various SIEMs to compromise them, for instance:
+
 •	Obtain user accounts and passwords stored in the SIEM from critical systems (LDAP/AD servers, databases, network devices, AWS servers).
+
 •	Develop and install malicious applications such as Windows/Linux reverse shells, Windows/Linux bind shells or malicious scripts with the aim of compromising the server where the SIEM is installed.
+
 •	Develop and install malicious applications such as Windows/Linux reverse shells, Windows/Linux bind shells or malicious scripts with the aim of compromising the machines from which the SIEM collects events.
+
 •	Create and apply malicious actions or notifications that allow to execute commands when a given event occurs, for example with the purpose of obtaining a reverse shell on the server where the SIEM is installed.
+
 •	Take advantage of default passwords and SIEM weaknesses in the OVA images configuration to obtain admin credentials of the server, database or even the SIEM web interface itself.
+
 •	Perform dictionary attacks or brute-force attacks against the web or admin interface, or against the SIEM client software, to obtain admin credentials.
+
 •	Read arbitrary files from the server where the SIEM is installed.
+
 •	Obtain SIEM configuration information and other relevant parameters to perform further attacks.
+
 On the basis of the investigation results, the tool Open Source SIEMs Framework was developed. It is a modular tool developed in Python3 by the Innovation and Laboratory team of ElevenPaths. It allows to automatize potential attacks to various SIEMs existing in the market (both commercial and open source).
 
 SIEMs Framework supports multiple attack payloads that may be selected according the SIEM to be attacked and its operating system. There are payloads available in PowerShell, Python, Bash, Exe, and more formats. Once the selected attack is executed, the tool shows the results on the screen and it is possible to return and execute any other attack on the same SIEM or select other SIEM to compromise. It has a simple, easy-to-use and intuitive interface. Currently it can be used with the following SIEMs: Splunk, Graylog and OSSIM.
@@ -26,28 +35,46 @@ SIEMs Framework supports multiple attack payloads that may be selected according
 SIEMs Framework can be downloaded from our Github by downloading the .zip file or cloning the repository, and presents the following requirements that can be installed through pip3 install -r requirements.txt:
 
 •	splunk-sdk
+
 •	requests
+
 •	python-nmap
+
 •	colorama
+
 •	pandas
+
 •	paramiko
+
 •	pymongo
+
+•	qradar4py
+
+•	requests_mock
+
+•	urllib3
 
 Once the requirements installed, the tool can be used as follows: python3 ./siemsframework.py
 
 ## TOOL USAGE
 
 When the tool is executed, the main menu is displayed, and there you must select if you wish to scan a specific IP where there would be a SIEM or a network to detect those SIEMs within it. For scanning and detecting the SIEM within a specific IP address you must use option 1, and for scanning the network option 2.
+
 ### Scanning a specific IP
 By selecting option 1 “Scan and Detect SIEM”, the tool requests the IP address to be able to scan the specific ports of the SIEMs supported and connect to either web or management interface in order to verify that it is really a SIEM.
  
 Once the SIEM has been detected by following the above methods, the tool shows the SIEM detected in red and gives you the option to launch the attack module of that SIEM.
+
 ### Network Scanning
 By selecting option 2 “Find SIEMs on the network” the tool requests the network to be scanned in CIDR notation, for instance: 192.168.137.0/24. Once the information is entered, SIEMs Framework performs firstly a discovery to detect the active systems; then, default ports of the SIEMs supported are scanned, and finally it connects to either web or management interface of each of those systems in order to verify that it is really a SIEM.
  
 Once the SIEMs have been detected by following the above methods, the tool shows the SIEMs detected in red and requests the IP address of the SIEM to be attacked.
 
+
 ### Splunk Attack Modules
+
+By entering “y” and selecting the launch of Splunk attack modules, the tool shows all the possible attacks to be performed against this SIEM. For the first two attacks no credentials are required, but for the fifth one Splunk admin privileges are needed.
+
 #### 1st Attack: Dictionary Attack on Splunk Admin Interface 
 This attack module contains a specific dictionary for Splunk named dict.txt, which is made up of the 100 most used password over 2018 and various permutations of the SIEM trade name and its admin user, in uppercase and lowercase letters, and replacing vowels with numbers. In case you wish to use any other list different from the one mentioned above, /splunk/dict.txt can be replaced with any other word list, provided that the file name is kept. Splunk password policy does not apply to users with admin role, so restrictions concerning password or account blocking due to unsuccessful access attempts do not apply.
 Prior to starting the dictionary attack, the tool verifies if the Splunk to be analyzed has the Free version that does not use any type of authentication, or if it still keeps the default password “changeme” of the oldest versions of this software:
@@ -98,6 +125,65 @@ This attack module allows to obtain configuration information from OSSIM server.
  
 ####  3rd Attack: Configure Malicious Policy and Action to Obtain Reserve Shell on OSSIM
 This attack module allows to obtain a reverse shell from OSSIM server to the attacker’s system. To use it, OSSIM admin credentials are needed, and they can be obtained for instance through a dictionary attack (1st attack). The module develops a malicious action that will be connected via netcat to the attacker’s system. Then, it triggers a new policy that uses such action to warn in case any security event occurs, and this event is triggered through an unsuccessful SSH login attempt to OSSIM server. Consequently, a reverse shell is obtained from the OSSIM server to the attacker’s system in port 12345 with root privileges.
+
+
+### QRadar Attack Modules
+By entering “y” and selecting the launch of QRadar attack modules, the tool shows all the possible attacks to be performed against this SIEM. For the first two attack no credentials are required, but for the subsequent ones QRadar admin credentials or API Key are needed.
+ 
+#### 1st Attack: Dictionary Attack on QRadar Web Interface
+This attack module contains a specific dictionary for QRadar named dict.txt, which is made up of the 100 most used password over 2018 and various permutations of the SIEM trade name and its admin user, in uppercase and lowercase letters, and replacing vowels with numbers. In case you wish to use any other list different from the one mentioned above, /qradar/dict.txt can be replaced with any other word list, provided that the file name is kept. This attack is very slow because QRadar have a protection that permits only to 5 attempts each 30 minutes.
+ 
+#### 2nd Attack: Dictionary Attack on QRadar API Keys
+This attack module contains a specific dictionary for QRadar named apikeys.txt, which is made up of the 1000 different options of API keys that keep the structure that needs in this SIEM. In case you wish to use any other list different from the one mentioned above, /qradar/dict.txt can be replaced with any other word list, provided that the file name is kept. The program gives to option of you could create the file with API keys aleatorily.
+ 
+####  3rd Attack: Obtain QRadar Server Configuration Information
+This attack module allows us to obtain the server configuration through to use of API Key. To use it, QRadar API Key admin is needed, and they can be obtained for instance through a dictionary attack (2nd attack). The result of the module is the relevant configuration information of the current installation: defined users, network hierarchy, and deployment hosts.
+
+####  4th Attack: Obtain list of usernames of databases Ariel on QRadar
+This attack module allows us to obtain the list of user that is saved in Ariel database. To use it, QRadar API Key admin is needed, and they can be obtained for instance through a dictionary attack (2nd attack). The result of the module is the relevant configuration information of the users that have had contact with Ariel database.
+
+
+### McAfee Attack Modules
+By entering “y” and selecting the launch of McAfee attack modules, the tool shows all the possible attacks to be performed against this SIEM. For the first attack no credentials are required, but for the subsequent ones McAfee admin credentials are needed.
+ 
+#### 1st Attack: Dictionary Attack on McAfee Web Interface
+This attack module contains a specific dictionary for McAfee named dict.txt, which is made up of 7000 passwords creates aleatorily with various permutations of the SIEM trade name and its admin user, in uppercase and lowercase letters, and replacing vowels with numbers. In case you wish to use any other list different from the one mentioned above, /mcafee/dict.txt can be replaced with any other word list, provided that the file name is kept. This attack is very slow because McAfee have a protection that permits only to 3 attempts each 10 minutes.
+ 
+#### 2nd Attack: Dictionary Attack on McAfee SSH Server
+This attack module contains a specific dictionary for McAfee named dict.txt, which is made up of 7000 passwords creates aleatorily with various permutations of the SIEM trade name and its admin user, in uppercase and lowercase letters, and replacing vowels with numbers. In case you wish to use any other list different from the one mentioned above, /mcafee/dict.txt can be replaced with any other word list, provided that the file name is kept.
+ 
+####  3rd Attack: Obtain McAfee Server Configuration Information
+This attack module allows us to obtain the server configuration through to use of admin credentials. To use it, SSH admin credentials are needed, and they can be obtained for instance through a dictionary attack (2nd attack). The result of the module is the relevant configuration information of the current installation: nameserver on the network, active services, network configuration, and firewall configuration.
+
+####  4th Attack: Obtain McAfee Server Information
+This attack module allows us to obtain the server configuration through to use of admin credentials. To use it, SSH admin credentials are needed, and they can be obtained for instance through a dictionary attack (2nd attack). The result of the module is the relevant configuration information of the current installation: Number of release of SIEM, hdd data, ram data, processor data, active time, status next check date, status rules check date, and backup next date.
+
+####  5th Attack: Obtain shadow file of McAfee Server
+This attack module allows us to obtain the server configuration through to use of admin credentials. To use it, SSH admin credentials are needed, and they can be obtained for instance through a dictionary attack (2nd attack). The result of the module is the relevant information about system users.
+
+
+### SIEMonster Attack Modules
+By entering “y” and selecting the launch of SIEMonster attack modules, the tool shows all the possible attacks to be performed against this SIEM. For the first attack no credentials are required, but for the subsequent ones SIEMonster admin credentials are needed.
+ 
+#### 1st Attack: Dictionary Attack on SIEMonster SSH Interface
+This attack module contains a specific dictionary for SIEMonster named dict.txt, which is made up of 7000 passwords creates aleatorily with various permutations of the SIEM trade name and its admin user, in uppercase and lowercase letters, and replacing vowels with numbers. In case you wish to use any other list different from the one mentioned above, /siemonster/dict.txt can be replaced with any other word list, provided that the file name is kept.
+ 
+####  2nd Attack: Obtain SIEMonster Server Information
+This attack module allows us to obtain the server configuration through to use of admin credentials. To use it, SSH admin credentials are needed, and they can be obtained for instance through a dictionary attack (1st attack). The result of the module is the relevant configuration information of the current installation: nameserver on the network, active docker's containers, list of active services, network configuration, and firewall configuration.
+
+####  3th Attack: Obtain shadow file of SIEMonster Server
+This attack module allows us to obtain the server configuration through to use of admin credentials. To use it, SSH admin credentials are needed, and they can be obtained for instance through a dictionary attack (1st attack). The result of the module is the relevant information about system users.
+
+
+### ElasticSIEM Attack Modules
+By entering “y” and selecting the launch of ElasticSIEM attack modules, the tool shows all the possible attacks to be performed against this SIEM. For the first attack no credentials are required, but for the subsequent ones ElasticSIEM admin credentials are needed.
+ 
+#### 1st Attack: Dictionary Attack on ElasticSIEM SSH Server
+This attack module contains a specific dictionary for ElasticSIEM named dict.txt, which is made up of the 7000 most used password over 2018 and various permutations of the SIEM trade name and its admin user, in uppercase and lowercase letters, and replacing vowels with numbers. In case you wish to use any other list different from the one mentioned above, /elasticsiem/dict.txt can be replaced with any other word list, provided that the file name is kept.
+ 
+####  2nd Attack: Obtain SIEMonster Server Information
+This attack module allows us to obtain the server configuration through to use of admin credentials. To use it, SSH admin credentials are needed, and they can be obtained for instance through a dictionary attack (1st attack). The result of the module is the relevant configuration information of the current installation: nameserver on the network, active docker's containers, list of active services, and network configuration.
+
 
 ## CONTRIBUTING AND SUPPORT
 

@@ -1,0 +1,10 @@
+colorama~=0.4.1
+pandas~=1.0.4
+paramiko~=2.4.1
+pymongo~=3.10.0
+python-nmap~=0.6.1
+qradar4py~=2.0
+requests~=2.24.0
+requests_mock
+splunk-sdk~=1.6.13
+urllib3~=1.22

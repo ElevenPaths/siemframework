@@ -1,0 +1,19 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+colorama = "~=0.4.1"
+paramiko = "~=2.4.1"
+pymongo = "~=3.10.0"
+python-nmap = "~=0.6.1"
+qradar4py = "~=2.0"
+requests = "~=2.19.1"
+splunk-sdk = "~=1.6.13"
+urllib3 = "~=1.22"
+
+[requires]
+python_version = "3.6"
